@@ -50,7 +50,6 @@ def home():
 @app.route(f"/bot{TELEGRAM_BOT_TOKEN}", methods=["POST"])
 def telegram_webhook():
     data = request.json
-    print("📩 Получен вебхук от Aspro:", data)
     if not data or "message" not in data:
         return "No message", 400
 
