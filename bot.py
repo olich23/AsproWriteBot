@@ -6,7 +6,7 @@ from threading import Lock
 
 app = Flask(__name__)
 
-TELEGRAM_BOT_TOKEN = os.getenv("7238683695:AAEetDQmRr3yxooQuwMi7WIIOghvL38SUVU")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 USERS_FILE = "users.json"
 users_lock = Lock()
 
