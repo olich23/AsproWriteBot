@@ -4,7 +4,7 @@ import os
 
 app = Flask(__name__)
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_BOT_TOKEN = os.getenv("7238683695:AAEetDQmRr3yxooQuwMi7WIIOghvL38SUVU")
 TELEGRAM_USER_ID = os.getenv("TELEGRAM_USER_ID")
 
 def send_telegram_message(text):
