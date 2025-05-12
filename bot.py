@@ -72,6 +72,7 @@ def telegram_webhook():
 @app.route("/aspro-webhook", methods=["POST"])
 def handle_webhook():
     data = request.json
+    print("📩 Получен вебхук от Aspro:", data)
     if not data:
         return "No data", 400
 
