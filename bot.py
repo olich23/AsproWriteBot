@@ -1,25 +1,73 @@
 from flask import Flask, request
 import requests
 import os
+import json
+from threading import Lock
 
 app = Flask(__name__)
 
 TELEGRAM_BOT_TOKEN = os.getenv("7238683695:AAEetDQmRr3yxooQuwMi7WIIOghvL38SUVU")
-TELEGRAM_USER_ID = os.getenv("TELEGRAM_USER_ID")
+USERS_FILE = "users.json"
+users_lock = Lock()
 
-def send_telegram_message(text):
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": TELEGRAM_USER_ID,
-        "text": text,
-        "parse_mode": "HTML"
-    }
-    requests.post(url, json=payload)
+# Загрузка пользователей из файла
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        return []
+    with open(USERS_FILE, "r") as f:
+        return json.load(f)
+
+# Сохранение пользователей в файл
+def save_users(user_ids):
+    with open(USERS_FILE, "w") as f:
+        json.dump(user_ids, f)
+
+# Добавление нового пользователя
+def register_user(user_id):
+    with users_lock:
+        user_ids = load_users()
+        if user_id not in user_ids:
+            user_ids.append(user_id)
+            save_users(user_ids)
+
+# Отправка сообщения всем пользователям
+def broadcast_message(text):
+    user_ids = load_users()
+    for user_id in user_ids:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": user_id,
+            "text": text,
+            "parse_mode": "HTML"
+        }
+        requests.post(url, json=payload)
 
 @app.route("/", methods=["GET"])
 def home():
     return "Bot is running!", 200
 
+# Вебхук от Telegram
+@app.route(f"/bot{TELEGRAM_BOT_TOKEN}", methods=["POST"])
+def telegram_webhook():
+    data = request.json
+    if not data or "message" not in data:
+        return "No message", 400
+
+    message = data["message"]
+    chat_id = message["chat"]["id"]
+    text = message.get("text", "")
+
+    # Регистрация пользователя
+    register_user(chat_id)
+
+    # Ответ на /start
+    if text == "/start":
+        send_text = "✅ Вы зарегистрированы для получения уведомлений о задачах из Aspro."
+        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                      json={"chat_id": chat_id, "text": send_text})
+    return "OK", 200
+
+# Вебхук от Aspro
 @app.route("/aspro-webhook", methods=["POST"])
 def handle_webhook():
     data = request.json
@@ -37,7 +85,7 @@ def handle_webhook():
               f"👤 Ответственный: {responsible}\n" \
               f"🔗 <a href='{url}'>Открыть задачу</a>"
 
-    send_telegram_message(message)
+    broadcast_message(message)
     return "OK", 200
 
 if __name__ == "__main__":
