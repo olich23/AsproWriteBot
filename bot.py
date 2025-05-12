@@ -50,7 +50,7 @@ def home():
 @app.route(f"/bot{TELEGRAM_BOT_TOKEN}", methods=["POST"])
 def telegram_webhook():
     data = request.json
-    print("📩 Получен вебхук от Aspro:", data)
+   
     if not data or "message" not in data:
         return "No message", 400
 
@@ -72,7 +72,7 @@ def telegram_webhook():
 @app.route("/aspro-webhook", methods=["POST"])
 def handle_webhook():
     data = request.json
-    print("📩 Получен вебхук от Aspro:", data)
+
     if not data:
         return "No data", 400
 
@@ -82,10 +82,7 @@ def handle_webhook():
     url = data.get("link", "#")
 
     message = f"📌 <b>Новая задача в Aspro</b>\n" \
-              f"📂 Проект: {project}\n" \
-              f"📝 Задача: {task_name}\n" \
-              f"👤 Ответственный: {responsible}\n" \
-              f"🔗 <a href='{url}'>Открыть задачу</a>"
+              f"🔗 <a href='https://pirus.aspro.cloud/'>Открыть Aspro</a>"
 
     broadcast_message(message)
     return "OK", 200
