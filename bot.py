@@ -11,13 +11,15 @@ USERS_FILE = "users.json"
 users_lock = Lock()
 
 
-def send_message(chat_id, text):
+def send_message(chat_id, text, keyboard=None):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": chat_id,
         "text": text,
         "parse_mode": "HTML"
     }
+    if keyboard:
+        payload["reply_markup"] = json.dumps(keyboard)
     requests.post(url, json=payload)
 
 
@@ -65,13 +67,20 @@ def telegram_webhook():
 
     register_user(chat_id)
 
-    if text == "/start":
+    if text == "/start" or text == "🔔 Подписаться на уведомления":
         welcome = (
             "👋 Привет! Ты успешно подписан на уведомления от Aspro.\n"
             "Теперь ты будешь получать сообщения о новых задачах, поставленных в системе.\n\n"
-            "ℹ️ Если бот используется командой, убедись, что каждый сотрудник написал /start."
+            "ℹ️ Убедись, что каждый сотрудник тоже нажал кнопку или отправил /start."
         )
-        send_message(chat_id, welcome)
+
+        keyboard = {
+            "keyboard": [["🔔 Подписаться на уведомления"]],
+            "resize_keyboard": True,
+            "one_time_keyboard": False
+        }
+
+        send_message(chat_id, welcome, keyboard=keyboard)
 
     return "OK", 200
 
