@@ -4,6 +4,7 @@ import os
 import json
 from threading import Lock
 
+
 app = Flask(__name__)
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
